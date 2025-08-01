@@ -12,6 +12,12 @@ import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import Image from 'next/image';
 
+interface Section {
+  section_id: string;
+  status: string;
+content:string
+}
+
 export default function DocumentManagementApp() {
   const { appState, initializeApp } = useAppState()
   const [leftPanelWidth, setLeftPanelWidth] = useState(60) // percentage
@@ -20,6 +26,18 @@ export default function DocumentManagementApp() {
   const handleSessionIdChange = (newSessionId: string) => {
     setSessionId(newSessionId)
     console.log('Session ID updated:',newSessionId);
+  }
+
+  //section ID
+  const [sections, setSections] =  useState<Section>({
+        section_id: "",
+        status: "",
+        content:""
+  });
+  const handleSectionChange = (newSections: Section) => {
+    console.log('Updation',newSections);
+    setSections(newSections)
+    console.log('Sections updated:',newSections);
   }
 
   useEffect(() => {
@@ -48,10 +66,17 @@ export default function DocumentManagementApp() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         <ResizablePanel
-          leftContent={<DocumentContainer />}
+          leftContent={<DocumentContainer 
+            SessionId={SessionId}
+            onSessionIdChange={handleSessionIdChange}
+            sections={sections}
+            onSectionsChange={handleSectionChange}
+          />}
           rightContent={<RightPanel 
             SessionId={SessionId}
             onSessionIdChange={handleSessionIdChange}
+            sections={sections}
+            onSectionsChange={handleSectionChange}
             />}
           leftWidth={leftPanelWidth}
           onWidthChange={setLeftPanelWidth}
@@ -64,9 +89,11 @@ export default function DocumentManagementApp() {
 type RightPanelProps = {
   SessionId: string;
   onSessionIdChange: (newSessionId: string) => void;
+  sections: Section;
+  onSectionsChange: (newSections: Section) => void;
 };
 
-function RightPanel({ SessionId,onSessionIdChange }: RightPanelProps) {
+function RightPanel({ SessionId,onSessionIdChange,  sections, onSectionsChange}: RightPanelProps) {
   return (
     <Card className="h-full rounded-none border-r-0 border-t-0 border-b-0 flex flex-col">
       <div className="flex-1 overflow-y-auto">
@@ -75,7 +102,11 @@ function RightPanel({ SessionId,onSessionIdChange }: RightPanelProps) {
           onSessionIdChange={onSessionIdChange}
         />
         <Separator />
-        <DocumentUploadSection />
+        <DocumentUploadSection 
+        SessionId={SessionId} 
+        sections={sections}
+        onSectionsChange={onSectionsChange}
+        />
         <Separator />
         <AIAssistantSection />
       </div>

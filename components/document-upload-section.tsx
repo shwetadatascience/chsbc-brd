@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef } from "react"
-import { ChevronDown, ChevronUp, Upload, FileText } from "lucide-react"
+import { ChevronDown, ChevronUp, Upload, FileText, Loader2  } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,10 +11,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Badge } from "@/components/ui/badge"
 import { useAppState } from "@/hooks/use-app-state"
+import { useToast } from "@/components/ui/use-toast";
+import { uploadProductSpecsFile, getInitialOutline } from "@/services/userService";
 
-export function DocumentUploadSection() {
+interface Section {
+  section_id: string;
+  status: string;
+  content:string
+}
+
+type DocumentUploadProps = {
+  SessionId: string;
+  sections: Section;
+  onSectionsChange: (sections: Section) => void;
+
+};
+
+export function DocumentUploadSection({ SessionId,  sections, onSectionsChange }: DocumentUploadProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { appState, uploadTemplate, uploadReference, uploadSupporting } = useAppState()
+  const [fileUploaded, setFileUploaded] = useState(false); // badge state
+  const [isFetchingOutline, setIsFetchingOutline] = useState(false); // loading spinner
+  const { toast } = useToast();
 
   const templateFileRef = useRef<HTMLInputElement>(null)
   const referenceFileRef = useRef<HTMLInputElement>(null)
@@ -34,14 +52,69 @@ export function DocumentUploadSection() {
     }
   }
 
-  const handleSupportingUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files) {
-      for (let i = 0; i < files.length; i++) {
-        await uploadSupporting(files[i])
-      }
+const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith(".md")) {
+      toast({
+        title: "Invalid File",
+        description: "Only .md files are allowed.",
+        variant: "destructive",
+      });
+      return;
     }
-  }
+
+    try {
+      // 1. Create session
+      const sessionId = SessionId;
+      console.log("Session created:", sessionId);
+
+      // 2. Upload file
+      await uploadProductSpecsFile(file, sessionId);
+      setFileUploaded(true);
+
+      // 3. Show success toast
+      toast({
+        title: "File Uploaded Successfully",
+        description: `Session ID: ${sessionId}`,
+        variant: "success",
+      });
+
+      // 4. Show fetching toast with spinner
+      setIsFetchingOutline(true);
+      toast({
+        title: "Fetching Outline Now...",
+        description: "Hang tight while we process your document.",
+        icon: <Loader2 className="animate-spin h-4 w-4 text-muted-foreground" />,
+      });
+
+      // 5. Slight delay then fetch outline
+      setTimeout(async () => {
+        try {
+          const outline = await getInitialOutline(sessionId);
+          console.log("Outline:", outline);
+          onSectionsChange(outline);
+          console.log("Outline:", outline);
+          // handle outline (store or render)
+        } catch (err) {
+          toast({
+            title: "Outline Fetch Failed",
+            description: "Unable to retrieve outline.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsFetchingOutline(false);
+        }
+      }, 100);
+    } catch (err) {
+      toast({
+        title: "Upload Failed",
+        description: "Something went wrong during upload.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Card className="rounded-none border-x-0 border-t-0">
@@ -137,23 +210,23 @@ export function DocumentUploadSection() {
             {/* Product Specs and Supporting Documents */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Label className="text-base font-medium">Product Specs and Other Supporting Documents</Label>
-                <Badge variant="destructive" className="text-xs">
-                  Required
+                <Label className="text-base font-medium">Product Specs Documents</Label>
+                <Badge variant={fileUploaded ? "success" : "destructive"} className="text-xs">
+                  {fileUploaded ? "Uploaded" : "Required"}
                 </Badge>
               </div>
               <div className="flex items-center gap-3">
                 <Input
                   ref={supportingFileRef}
                   type="file"
-                  onChange={handleSupportingUpload}
+                  onChange={handleSupportingSpecsUpload}
                   multiple
                   className="flex-1"
-                  accept=".pdf,.doc,.docx"
+                  accept=".md"
                 />
                 <Button onClick={() => supportingFileRef.current?.click()} size="sm" className="gap-2">
                   <Upload className="h-4 w-4" />
-                  Upload Supporting
+                  Upload .md File
                 </Button>
               </div>
             </div>

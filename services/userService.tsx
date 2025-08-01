@@ -9,3 +9,23 @@ export const createSession = async () => {
     throw error;
   }
 };
+
+//service to upload prod specs file
+export const uploadProductSpecsFile = async (file: File, sessionId: string) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await api.post(`/create/support-data?session_id=${sessionId}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data;
+};
+
+//service to get inital Outline
+export const getInitialOutline = async (sessionId: string) => {
+  const response = await api.get('/create/template', { session_id: sessionId });
+  return response.data;
+};

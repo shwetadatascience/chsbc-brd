@@ -7,7 +7,20 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAppState } from "@/hooks/use-app-state"
 
-export function DocumentContainer() {
+interface Section {
+  section_id: string;
+  status: string;
+  content:string
+}
+
+type DocumentContainerProps = {
+  SessionId: string;
+  onSessionIdChange: (newSessionId: string) => void;
+  sections: Section;
+  onSectionsChange: (sections: Section) => void;
+};
+
+export function DocumentContainer({ SessionId,onSessionIdChange, sections, onSectionsChange }: DocumentContainerProps) {
   const { appState } = useAppState()
 
   if (!appState.template) {
