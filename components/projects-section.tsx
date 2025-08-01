@@ -10,7 +10,13 @@ import { useAppState } from "@/hooks/use-app-state"
 import { createSession } from '@/services/userService';
 import { useToast } from "@/components/ui/use-toast";
 
-export function ProjectsSection() {
+type ProjectsSectionProps = {
+  SessionId: string;
+  onSessionIdChange: (newSessionId: string) => void;
+};
+
+
+export function ProjectsSection({ SessionId,onSessionIdChange }: ProjectsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { appState, createNewProject } = useAppState()
   const { toast } = useToast();
@@ -19,11 +25,13 @@ export function ProjectsSection() {
     try {
       const result = await createSession(); // This is the service function
       console.log('Session created:', result);
+      onSessionIdChange(result.session_id)
        toast({
         title: "Project Created",
         description: `Project ID: ${result.session_id|| "unknown"}`,
-        variant: "default", // can also use "success" if customized
       });
+      console.log("Creating toast...");
+toast({ title: "Test", description: "Toast check" });
     } catch (error) {
       console.error('Session creation failed:', error);
     }
@@ -50,8 +58,8 @@ export function ProjectsSection() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Project ID:</span>
-                {appState.projectId ? (
-                  <Badge variant="secondary">{appState.projectId}</Badge>
+                {SessionId ? (
+                  <Badge variant="secondary">{SessionId}</Badge>
                 ) : (
                   <Badge variant="outline">Not Created</Badge>
                 )}

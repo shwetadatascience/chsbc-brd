@@ -16,6 +16,12 @@ export default function DocumentManagementApp() {
   const { appState, initializeApp } = useAppState()
   const [leftPanelWidth, setLeftPanelWidth] = useState(60) // percentage
 
+  const [SessionId, setSessionId] = useState<string>("");
+  const handleSessionIdChange = (newSessionId: string) => {
+    setSessionId(newSessionId)
+    console.log('Session ID updated:',newSessionId);
+  }
+
   useEffect(() => {
     initializeApp()
   }, [initializeApp])
@@ -43,7 +49,10 @@ export default function DocumentManagementApp() {
       <div className="flex-1 flex overflow-hidden">
         <ResizablePanel
           leftContent={<DocumentContainer />}
-          rightContent={<RightPanel />}
+          rightContent={<RightPanel 
+            SessionId={SessionId}
+            onSessionIdChange={handleSessionIdChange}
+            />}
           leftWidth={leftPanelWidth}
           onWidthChange={setLeftPanelWidth}
         />
@@ -52,11 +61,19 @@ export default function DocumentManagementApp() {
   )
 }
 
-function RightPanel() {
+type RightPanelProps = {
+  SessionId: string;
+  onSessionIdChange: (newSessionId: string) => void;
+};
+
+function RightPanel({ SessionId,onSessionIdChange }: RightPanelProps) {
   return (
     <Card className="h-full rounded-none border-r-0 border-t-0 border-b-0 flex flex-col">
       <div className="flex-1 overflow-y-auto">
-        <ProjectsSection />
+        <ProjectsSection 
+          SessionId={SessionId}
+          onSessionIdChange={onSessionIdChange}
+        />
         <Separator />
         <DocumentUploadSection />
         <Separator />
