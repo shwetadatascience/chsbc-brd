@@ -20,7 +20,7 @@ export function DocumentContainer() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-start gap-3">
+              {/* <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-destructive rounded-full mt-2 flex-shrink-0" />
                 <div>
                   <p className="font-medium">BRD Template Document</p>
@@ -28,8 +28,8 @@ export function DocumentContainer() {
                     Required
                   </Badge>
                 </div>
-              </div>
-              <div className="flex items-start gap-3">
+              </div> */}
+              {/* <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-destructive rounded-full mt-2 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Sample BRD Document</p>
@@ -37,14 +37,14 @@ export function DocumentContainer() {
                     Required
                   </Badge>
                 </div>
-              </div>
+              </div> */}
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-destructive rounded-full mt-2 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Product Specs and Supporting Documents</p>
-                  <Badge variant="destructive" className="text-xs">
+                  {/* <Badge variant="destructive" className="text-xs">
                     Required
-                  </Badge>
+                  </Badge> */}
                 </div>
               </div>
             </div>

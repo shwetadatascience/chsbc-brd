@@ -10,6 +10,7 @@ import { useAppState } from "@/hooks/use-app-state"
 import { DownloadDropdown } from "@/components/download-dropdown"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import Image from 'next/image';
 
 export default function DocumentManagementApp() {
   const { appState, initializeApp } = useAppState()
@@ -23,16 +24,11 @@ export default function DocumentManagementApp() {
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
       <Card className="rounded-none border-x-0 border-t-0">
-        <div className="px-6 py-4 flex items-center justify-between">
+        <div className="px-6 flex items-center justify-between">
           <div className="flex items-center gap-6">
             {/* Canara Logo */}
             <div className="flex items-center gap-2">
-              <img src="/placeholder.svg?height=32&width=120&text=Canara+Bank" alt="Canara Bank" className="h-8" />
-            </div>
-
-            {/* HSBC Logo */}
-            <div className="flex items-center gap-2">
-              <img src="/placeholder.svg?height=32&width=80&text=HSBC" alt="HSBC" className="h-8" />
+              <Image src="/CanaraHSBC_Logo-01.jpg" alt="Canara HSBC Logo" width={140} height={70} className="logo-negative-margin" />
             </div>
           </div>
 

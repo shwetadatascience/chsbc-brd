@@ -62,7 +62,7 @@ export function DocumentUploadSection() {
         <CollapsibleContent>
           <CardContent className="space-y-6">
             {/* BRD Template Document */}
-            <div className="space-y-3">
+            {/* <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Label className="text-base font-medium">BRD Template Document</Label>
                 <Badge variant="destructive" className="text-xs">
@@ -82,10 +82,10 @@ export function DocumentUploadSection() {
                   Upload Template
                 </Button>
               </div>
-            </div>
+            </div> */}
 
             {/* Sample BRD Document */}
-            <div className="space-y-3">
+            {/* <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Label className="text-base font-medium">Sample BRD Document</Label>
                 <Badge variant="destructive" className="text-xs">
@@ -132,7 +132,7 @@ export function DocumentUploadSection() {
                   Upload Reference
                 </Button>
               </div>
-            </div>
+            </div> */}
 
             {/* Product Specs and Supporting Documents */}
             <div className="space-y-3">
