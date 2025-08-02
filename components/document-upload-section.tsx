@@ -51,15 +51,15 @@ export function DocumentUploadSection({ SessionId,  sections, onSectionsChange }
       await uploadReference(file)
     }
   }
-
+const allowedExtensions = [".md", ".txt",".docx", ".xls", ".xlsx"];
 const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.endsWith(".md")) {
+    if (!allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
       toast({
         title: "Invalid File",
-        description: "Only .md files are allowed.",
+        description: "Only .md, .txt, .docx, .xls, and .xlsx files are allowed.",
         variant: "destructive",
       });
       return;
@@ -216,6 +216,7 @@ const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement
                   {fileUploaded ? "Uploaded" : "Required"}
                 </Badge>
               </div>
+             
               <div className="flex items-center gap-3">
                 <Input
                   ref={supportingFileRef}
@@ -223,13 +224,16 @@ const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement
                   onChange={handleSupportingSpecsUpload}
                   multiple
                   className="flex-1"
-                  accept=".md"
+                  accept=".docx,.txt,.xls,.xlsx,.md"
                 />
                 <Button onClick={() => supportingFileRef.current?.click()} size="sm" className="gap-2 cursor-pointer">
                   <Upload className="h-4 w-4" />
                   Upload .md File
                 </Button>
               </div>
+              <span className="text-sm text-muted-foreground">
+                Expected file types: <code>.md</code>, <code>.txt</code>, <code>.docx</code>, <code>.xls</code>, <code>.xlsx</code>
+              </span>
             </div>
           </CardContent>
         </CollapsibleContent>

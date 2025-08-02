@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { generateIndividualSection } from "@/services/userService";
+import { generateIndividualSection,editManualSection } from "@/services/userService";
 import { useToast } from "@/hooks/use-toast";
 import { MDXEditorMethods } from '@mdxeditor/editor';
 import { Loader2 } from "lucide-react";
@@ -78,54 +78,106 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
     onSectionsChange(updated);
   };
 
-const handleGenerate = async (sectionId: string) => {
-  if (!SessionId) return;
+  const handleEdit = async (sectionId: string) => {
+    if (!SessionId) return;
 
-  setLoadingSections(prev => ({ ...prev, [sectionId]: true }));
+    setLoadingSections(prev => ({ ...prev, [sectionId]: true }));
 
-  try {
-    const response = await generateIndividualSection(sectionId, SessionId);
+    try {
+      const matchedSection = localSections.find((s) => s.section_id === sectionId);
+      const Sectioncontent = matchedSection?.content || "";
 
-    const { content } = response;
+      const response = await editManualSection(sectionId,Sectioncontent);
 
-    console.log('Content', response);
+      const { content, status, section_id } = response;
 
-    // Update content in editor
-    const editorInstance = editorRefs.current[sectionId];
-    if (editorInstance) {
-      editorInstance.setMarkdown(content || '');
-    }
+      console.log('Edit Content', response);
 
-    // Update content in local state and propagate to parent
-
-    const updatedSections = localSections.map((section) =>
-      section.section_id === sectionId ? { ...section, content } : section
-    );
-
-    console.log('Updated Sections', updatedSections);
-
-    setLocalSections(updatedSections);
-    onSectionsChange(updatedSections);
-
-    toast({
-      title: "Section Generated",
-      description: `${formatTitle(response.section_id)} generated Successfully`,
-    });
-
-    // Optional: toast.success('Section generated successfully');
-  } catch (error) {
-    console.error('Error generating section:', error);
-    // Optional: toast.error('Failed to generate section');
-    toast({
-      variant: "destructive",
-      title: "Generation Failed",
-      description: `Could not generate section.`,
-    });
-  }
-    finally {
-        setLoadingSections(prev => ({ ...prev, [sectionId]: false }));
+      // Update content in editor
+      const editorInstance = editorRefs.current[sectionId];
+      if (editorInstance) {
+        editorInstance.setMarkdown(content || '');
       }
-};
+
+      // Update content in local state and propagate to parent
+
+      const updatedSections = localSections.map((section) =>
+        section.section_id === sectionId ? { ...section, content, status } : section
+      );
+
+      console.log('Updated Sections', updatedSections);
+
+      setLocalSections(updatedSections);
+      onSectionsChange(updatedSections);
+
+      toast({
+        title: "Section Generated",
+        description: `${formatTitle(response.section_id)} generated Successfully`,
+      });
+
+      // Optional: toast.success('Section generated successfully');
+    } catch (error) {
+      console.error('Error generating section:', error);
+      // Optional: toast.error('Failed to generate section');
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: `Could not generate section.`,
+      });
+    }
+    finally {
+      setLoadingSections(prev => ({ ...prev, [sectionId]: false }));
+    }
+  };
+
+  const handleGenerate = async (sectionId: string) => {
+    if (!SessionId) return;
+
+    setLoadingSections(prev => ({ ...prev, [sectionId]: true }));
+
+    try {
+      const response = await generateIndividualSection(sectionId, SessionId);
+
+      const { content, status, section_id } = response;
+
+      console.log('Content', response);
+
+      // Update content in editor
+      const editorInstance = editorRefs.current[sectionId];
+      if (editorInstance) {
+        editorInstance.setMarkdown(content || '');
+      }
+
+      // Update content in local state and propagate to parent
+
+      const updatedSections = localSections.map((section) =>
+        section.section_id === sectionId ? { ...section, content, status } : section
+      );
+
+      console.log('Updated Sections', updatedSections);
+
+      setLocalSections(updatedSections);
+      onSectionsChange(updatedSections);
+
+      toast({
+        title: "Section Generated",
+        description: `${formatTitle(response.section_id)} generated Successfully`,
+      });
+
+      // Optional: toast.success('Section generated successfully');
+    } catch (error) {
+      console.error('Error generating section:', error);
+      // Optional: toast.error('Failed to generate section');
+      toast({
+        variant: "destructive",
+        title: "Generation Failed",
+        description: `Could not generate section.`,
+      });
+    }
+    finally {
+      setLoadingSections(prev => ({ ...prev, [sectionId]: false }));
+    }
+  };
 
 
 
@@ -133,17 +185,17 @@ const handleGenerate = async (sectionId: string) => {
     return (
       <div className="h-full flex items-center justify-center p-8 bg-muted/30">
         <Card className="max-w-md">
-          <CardHeader className="text-center">
+          <CardHeader className="text-center pt-8">
             <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <CardTitle className="text-xl">Upload Required Documents</CardTitle>
+            <CardTitle className="text-xl -mb-6">Upload Required Documents</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-0 pb-8">
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-destructive rounded-full mt-2 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Product Specs and Supporting Documents</p>
-                  <Badge variant="destructive" className="text-xs">Required</Badge>
+                  {/* <Badge variant="destructive" className="text-xs">Required</Badge> */}
                 </div>
               </div>
             </div>
@@ -159,21 +211,30 @@ const handleGenerate = async (sectionId: string) => {
         {localSections.map((section) => (
           <Card key={section.section_id} className="shadow-sm bg-[#EAF5FD] border-none">
             <CardHeader>
-              <div className="flex justify-between">
+              <div>
                 <div className="flex justify-between items-center gap-6">
                   <CardTitle className="text-lg">{formatTitle(section.section_id)}</CardTitle>
                   <Button
                     size="sm"
                     className="cursor-pointer"
-                    onClick={() => handleGenerate(section.section_id)}
+                      onClick={() =>
+                        section.status === "generated"
+                          ? handleEdit(section.section_id)
+                          : handleGenerate(section.section_id)
+                      }
                   >
-                  {loadingSections[section.section_id] ? (
-                  <>
-                    <Loader2 className="animate-spin w-4 h-4 mr-2" />
-                    Generating...
-                  </>
+                    {loadingSections[section.section_id] ? (
+                      <>
+                        <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                        Generating...
+                      </>
                     ) : (
-                      "Generate Section"
+                      (section.status === 'generated' || section.status === 'edited') && section.content != "" ? (
+                        "Save Section"
+                      ) : (
+                        "Generate Section"
+                      )
+
                     )}
                   </Button>
                 </div>
@@ -181,39 +242,39 @@ const handleGenerate = async (sectionId: string) => {
             </CardHeader>
             <CardContent>
 
-            <MDXEditor
-              className="dark-theme dark-editor mdx-editor"
-              markdown={section.content || ""}
-              ref={(ref) => {editorRefs.current[section.section_id] = ref;}}
-              onChange={(val) => handleContentChange(section.section_id, val)}
-              plugins={[
-                headingsPlugin(),
-                listsPlugin(),
-                linkPlugin(),
-                quotePlugin(),
-                thematicBreakPlugin(),
-                //markdownShortcutPlugin(),
-                tablePlugin(),
-                //frontmatterPlugin(),
-                //directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
-                diffSourcePlugin({ diffMarkdown: 'An older version', viewMode: 'rich-text' }),
-                toolbarPlugin({
-                  toolbarContents: () => (
-                    <>
-                      {' '}
-                      <DiffSourceToggleWrapper>
-                        <UndoRedo />
-                      </DiffSourceToggleWrapper>
-                      <BoldItalicUnderlineToggles />
-                      <InsertTable />
-                      <ListsToggle />
-                      <InsertFrontmatter />
-                    </>
-                  )
-                }),
+              <MDXEditor
+                className="dark-theme dark-editor mdx-editor"
+                markdown={section.content || ""}
+                ref={(ref) => { editorRefs.current[section.section_id] = ref; }}
+                onChange={(val) => handleContentChange(section.section_id, val)}
+                plugins={[
+                  headingsPlugin(),
+                  listsPlugin(),
+                  linkPlugin(),
+                  quotePlugin(),
+                  thematicBreakPlugin(),
+                  //markdownShortcutPlugin(),
+                  tablePlugin(),
+                  //frontmatterPlugin(),
+                  //directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
+                  diffSourcePlugin({ diffMarkdown: 'An older version', viewMode: 'rich-text' }),
+                  toolbarPlugin({
+                    toolbarContents: () => (
+                      <>
+                        {' '}
+                        <DiffSourceToggleWrapper>
+                          <UndoRedo />
+                        </DiffSourceToggleWrapper>
+                        <BoldItalicUnderlineToggles />
+                        <InsertTable />
+                        <ListsToggle />
+                        <InsertFrontmatter />
+                      </>
+                    )
+                  }),
 
-              ]}
-            />
+                ]}
+              />
             </CardContent>
           </Card>
         ))}

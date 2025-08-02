@@ -99,6 +99,7 @@ export default function DocumentManagementApp() {
             <div className="flex items-center gap-2">
               <Image src="/CanaraHSBC_Logo-01.jpg" alt="Canara HSBC Logo" width={140} height={70} className="logo-negative-margin" />
             </div>
+            <h1 className="font-semibold text-xl">CHSBC BRD Generator</h1>
           </div>
 
           {/* Download Dropdown - moved to extreme right */}

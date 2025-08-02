@@ -42,6 +42,21 @@ export const generateIndividualSection = async (sectionId: string, sessionId: st
   }
 };
 
+//service to edit manual sections 
+export const editManualSection = async (sectionId: string,Sectioncontent: string) => {
+  try {
+    const response = await api.patch(`/edit/section/${sectionId}?session_id=2d476300-cb16-43e5-b911-28b8c1d8f608`, {
+      // sectionId: sectionId,
+      content: Sectioncontent,
+    });
+
+    return response.data; // assuming it returns { content: '...' }
+  } catch (error) {
+    console.error('Error edit section:', error);
+    throw error;
+  }
+};
+
 //service to download pdf file
 export const downloadPdfDocument = async (sessionId: string) => {
   const response = await api.get(`/download/pdf/${sessionId}`, {

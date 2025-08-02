@@ -5,9 +5,9 @@ import { Toaster } from "@/components/ui/toaster";
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'CHSBC BRD Generator',
+  description: 'CHSBC BRD Generator - A tool to generate Business Requirements Documents',
+  generator: 'CHSBC BRD Generator',
 }
 
 export default function RootLayout({
