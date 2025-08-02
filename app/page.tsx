@@ -7,11 +7,19 @@ import { DocumentUploadSection } from "@/components/document-upload-section"
 import { AIAssistantSection } from "@/components/ai-assistant-section"
 import { DocumentContainer } from "@/components/document-container"
 import { useAppState } from "@/hooks/use-app-state"
-import { DownloadDropdown } from "@/components/download-dropdown"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import Image from 'next/image';
-
+import { useToast } from "@/hooks/use-toast";
+import { downloadPdfDocument, downloadWordDocument } from "@/services/userService";
 interface Section {
   section_id: string;
   status: string;
@@ -21,11 +29,11 @@ interface Section {
 export default function DocumentManagementApp() {
   const { appState, initializeApp } = useAppState()
   const [leftPanelWidth, setLeftPanelWidth] = useState(60) // percentage
+  const { toast } = useToast();
 
   const [SessionId, setSessionId] = useState<string>("");
   const handleSessionIdChange = (newSessionId: string) => {
     setSessionId(newSessionId)
-    console.log('Session ID updated:',newSessionId);
   }
 
   //section ID
@@ -39,6 +47,43 @@ export default function DocumentManagementApp() {
     setSections(newSections)
     console.log('Sections updated:',newSections);
   }
+
+  //function to download files
+    const handleDownload = async (type: "pdf" | "word") => {
+    try {
+      const blob =
+        type === "pdf"
+          ? await downloadPdfDocument(SessionId)
+          : await downloadWordDocument(SessionId);
+
+      const contentType =
+        type === "pdf"
+          ? "application/pdf"
+          : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+      const filename = `final-document.${type === "pdf" ? "pdf" : "docx"}`;
+      const blobUrl = URL.createObjectURL(new Blob([blob], { type: contentType }));
+
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+
+      toast({
+        title: `Download Started`,
+        description: `Your ${type.toUpperCase()} document is downloading.`,
+      });
+    } catch (err) {
+      toast({
+        title: "Download Failed",
+        description: `Could not download ${type.toUpperCase()} document.`,
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     initializeApp()
@@ -58,7 +103,23 @@ export default function DocumentManagementApp() {
 
           {/* Download Dropdown - moved to extreme right */}
           <div className="ml-auto">
-            <DownloadDropdown />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Download className="w-4 h-4" />
+                  Download
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {/* <DropdownMenuItem onClick={() => handleDownload("pdf")}>
+                  PDF
+                </DropdownMenuItem> */}
+                <DropdownMenuItem onClick={() => handleDownload("word")}>
+                  Word
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
           </div>
         </div>
       </Card>

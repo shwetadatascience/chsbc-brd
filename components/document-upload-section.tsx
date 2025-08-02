@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Badge } from "@/components/ui/badge"
 import { useAppState } from "@/hooks/use-app-state"
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { uploadProductSpecsFile, getInitialOutline } from "@/services/userService";
 
 interface Section {
@@ -68,7 +68,6 @@ const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement
     try {
       // 1. Create session
       const sessionId = SessionId;
-      console.log("Session created:", sessionId);
 
       // 2. Upload file
       await uploadProductSpecsFile(file, sessionId);
@@ -93,7 +92,6 @@ const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement
       setTimeout(async () => {
         try {
           const outline = await getInitialOutline(sessionId);
-          console.log("Outline:", outline);
           onSectionsChange(outline);
           console.log("Outline:", outline);
           // handle outline (store or render)

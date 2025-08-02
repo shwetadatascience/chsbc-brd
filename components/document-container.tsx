@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { FileText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { generateIndividualSection } from "@/services/userService";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { MDXEditorMethods } from '@mdxeditor/editor';
+import { Loader2 } from "lucide-react";
 import {
   MDXEditor, headingsPlugin,
   listsPlugin, quotePlugin, thematicBreakPlugin, toolbarPlugin, UndoRedo,
@@ -28,6 +29,7 @@ interface Section {
   section_id: string;
   title?: string;
   content: string;
+  status: string;
 }
 
 type DocumentContainerProps = {
@@ -40,7 +42,8 @@ type DocumentContainerProps = {
 export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSectionsChange }: DocumentContainerProps) {
   const [localSections, setLocalSections] = useState<Section[]>(sections);
   const editorRefs = useRef<Record<string, MDXEditorMethods | null>>({});
-   const { toast } = useToast();
+  const { toast } = useToast();
+  const [loadingSections, setLoadingSections] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     setLocalSections(sections);
@@ -75,28 +78,17 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
     onSectionsChange(updated);
   };
 
-// const handleGenerate = async (sectionId: string) => {
-//   if (!SessionId) return;
-
-//   try {
-//     // Call your updated service to fetch section content
-//     const response = await generateIndividualSection(sectionId, SessionId);
-
-//     // Assuming response contains the content as plain markdown
-//     // toast.success(`Content generated for section: ${formatTitle(sectionId)}`);
-//   } catch (error) {
-//     console.error('Error generating section content:', error);
-//     // toast.error('Failed to generate section content.');
-//   }
-// };
-
 const handleGenerate = async (sectionId: string) => {
   if (!SessionId) return;
+
+  setLoadingSections(prev => ({ ...prev, [sectionId]: true }));
 
   try {
     const response = await generateIndividualSection(sectionId, SessionId);
 
     const { content } = response;
+
+    console.log('Content', response);
 
     // Update content in editor
     const editorInstance = editorRefs.current[sectionId];
@@ -105,23 +97,34 @@ const handleGenerate = async (sectionId: string) => {
     }
 
     // Update content in local state and propagate to parent
+
     const updatedSections = localSections.map((section) =>
       section.section_id === sectionId ? { ...section, content } : section
     );
+
+    console.log('Updated Sections', updatedSections);
 
     setLocalSections(updatedSections);
     onSectionsChange(updatedSections);
 
     toast({
       title: "Section Generated",
-      description: `${response.section_id} generated Successfully`,
+      description: `${formatTitle(response.section_id)} generated Successfully`,
     });
 
     // Optional: toast.success('Section generated successfully');
   } catch (error) {
     console.error('Error generating section:', error);
     // Optional: toast.error('Failed to generate section');
+    toast({
+      variant: "destructive",
+      title: "Generation Failed",
+      description: `Could not generate section.`,
+    });
   }
+    finally {
+        setLoadingSections(prev => ({ ...prev, [sectionId]: false }));
+      }
 };
 
 
@@ -154,7 +157,7 @@ const handleGenerate = async (sectionId: string) => {
     <ScrollArea className="h-full">
       <div className="p-6 space-y-6">
         {localSections.map((section) => (
-          <Card key={section.section_id} className="shadow-sm">
+          <Card key={section.section_id} className="shadow-sm bg-[#EAF5FD] border-none">
             <CardHeader>
               <div className="flex justify-between">
                 <div className="flex justify-between items-center gap-6">
@@ -164,7 +167,14 @@ const handleGenerate = async (sectionId: string) => {
                     className="cursor-pointer"
                     onClick={() => handleGenerate(section.section_id)}
                   >
-                    Generate Section
+                  {loadingSections[section.section_id] ? (
+                  <>
+                    <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                    Generating...
+                  </>
+                    ) : (
+                      "Generate Section"
+                    )}
                   </Button>
                 </div>
               </div>

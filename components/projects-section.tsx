@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useAppState } from "@/hooks/use-app-state"
 import { createSession } from '@/services/userService';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 type ProjectsSectionProps = {
   SessionId: string;
@@ -22,6 +22,7 @@ export function ProjectsSection({ SessionId,onSessionIdChange }: ProjectsSection
   const { toast } = useToast();
 
   const handleCreateSession = async () => {
+
     try {
       const result = await createSession(); // This is the service function
       console.log('Session created:', result);
@@ -30,8 +31,6 @@ export function ProjectsSection({ SessionId,onSessionIdChange }: ProjectsSection
         title: "Project Created",
         description: `Project ID: ${result.session_id|| "unknown"}`,
       });
-      console.log("Creating toast...");
-      toast({ title: "Test", description: "Toast check" });
           } catch (error) {
             console.error('Session creation failed:', error);
           }
