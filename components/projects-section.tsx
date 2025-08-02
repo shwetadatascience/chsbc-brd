@@ -31,11 +31,11 @@ export function ProjectsSection({ SessionId,onSessionIdChange }: ProjectsSection
         description: `Project ID: ${result.session_id|| "unknown"}`,
       });
       console.log("Creating toast...");
-toast({ title: "Test", description: "Toast check" });
-    } catch (error) {
-      console.error('Session creation failed:', error);
-    }
-  };
+      toast({ title: "Test", description: "Toast check" });
+          } catch (error) {
+            console.error('Session creation failed:', error);
+          }
+        };
 
   return (
     <Card className="rounded-none border-x-0 border-t-0">
@@ -64,7 +64,7 @@ toast({ title: "Test", description: "Toast check" });
                   <Badge variant="outline">Not Created</Badge>
                 )}
               </div>
-              <Button onClick={handleCreateSession} size="sm" className="gap-2">
+              <Button onClick={handleCreateSession} size="sm" className="gap-2 cursor-pointer">
                 <Plus className="h-4 w-4" />
                 New Project
               </Button>

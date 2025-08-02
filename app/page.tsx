@@ -15,7 +15,7 @@ import Image from 'next/image';
 interface Section {
   section_id: string;
   status: string;
-content:string
+  content:string
 }
 
 export default function DocumentManagementApp() {

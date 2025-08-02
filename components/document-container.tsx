@@ -1,29 +1,132 @@
-"use client"
+"use client";
 
-import { Edit, FileText } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useAppState } from "@/hooks/use-app-state"
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FileText } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { generateIndividualSection } from "@/services/userService";
+import { useToast } from "@/components/ui/use-toast";
+import { MDXEditorMethods } from '@mdxeditor/editor';
+import {
+  MDXEditor, headingsPlugin,
+  listsPlugin, quotePlugin, thematicBreakPlugin, toolbarPlugin, UndoRedo,
+  BoldItalicUnderlineToggles, diffSourcePlugin,
+  tablePlugin,
+  InsertTable,
+  DiffSourceToggleWrapper,
+  linkPlugin,
+  InsertFrontmatter,
+  ListsToggle
+} from '@mdxeditor/editor';
+import '@mdxeditor/editor/style.css';
+
+
 
 interface Section {
   section_id: string;
-  status: string;
-  content:string
+  title?: string;
+  content: string;
 }
 
 type DocumentContainerProps = {
   SessionId: string;
   onSessionIdChange: (newSessionId: string) => void;
-  sections: Section;
-  onSectionsChange: (sections: Section) => void;
+  sections: Section[];
+  onSectionsChange: (sections: Section[]) => void;
 };
 
-export function DocumentContainer({ SessionId,onSessionIdChange, sections, onSectionsChange }: DocumentContainerProps) {
-  const { appState } = useAppState()
+export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSectionsChange }: DocumentContainerProps) {
+  const [localSections, setLocalSections] = useState<Section[]>(sections);
+  const editorRefs = useRef<Record<string, MDXEditorMethods | null>>({});
+   const { toast } = useToast();
 
-  if (!appState.template) {
+  useEffect(() => {
+    setLocalSections(sections);
+  }, [sections]);
+
+
+  const formatTitle = (title: string) => {
+    const parts = title.split('_');
+
+    // Remove leading numeric prefix if it exists
+    if (!isNaN(Number(parts[0]))) {
+      parts.shift();
+    }
+
+    // If the next word is 1–2 characters and not meaningful, remove it too
+    if (parts[0] && parts[0].length <= 2 && ['d', 'b', 'a', 'c', 'x', 'show'].includes(parts[0].toLowerCase())) {
+      parts.shift();
+    }
+
+    // Capitalize and join
+    return parts
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+
+  const handleContentChange = (sectionId: string, content: string) => {
+    const updated = localSections.map((s) =>
+      s.section_id === sectionId ? { ...s, content } : s
+    );
+    setLocalSections(updated);
+    onSectionsChange(updated);
+  };
+
+// const handleGenerate = async (sectionId: string) => {
+//   if (!SessionId) return;
+
+//   try {
+//     // Call your updated service to fetch section content
+//     const response = await generateIndividualSection(sectionId, SessionId);
+
+//     // Assuming response contains the content as plain markdown
+//     // toast.success(`Content generated for section: ${formatTitle(sectionId)}`);
+//   } catch (error) {
+//     console.error('Error generating section content:', error);
+//     // toast.error('Failed to generate section content.');
+//   }
+// };
+
+const handleGenerate = async (sectionId: string) => {
+  if (!SessionId) return;
+
+  try {
+    const response = await generateIndividualSection(sectionId, SessionId);
+
+    const { content } = response;
+
+    // Update content in editor
+    const editorInstance = editorRefs.current[sectionId];
+    if (editorInstance) {
+      editorInstance.setMarkdown(content || '');
+    }
+
+    // Update content in local state and propagate to parent
+    const updatedSections = localSections.map((section) =>
+      section.section_id === sectionId ? { ...section, content } : section
+    );
+
+    setLocalSections(updatedSections);
+    onSectionsChange(updatedSections);
+
+    toast({
+      title: "Section Generated",
+      description: `${response.section_id} generated Successfully`,
+    });
+
+    // Optional: toast.success('Section generated successfully');
+  } catch (error) {
+    console.error('Error generating section:', error);
+    // Optional: toast.error('Failed to generate section');
+  }
+};
+
+
+
+  if (!localSections.length) {
     return (
       <div className="h-full flex items-center justify-center p-8 bg-muted/30">
         <Card className="max-w-md">
@@ -33,69 +136,78 @@ export function DocumentContainer({ SessionId,onSessionIdChange, sections, onSec
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {/* <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-destructive rounded-full mt-2 flex-shrink-0" />
-                <div>
-                  <p className="font-medium">BRD Template Document</p>
-                  <Badge variant="destructive" className="text-xs">
-                    Required
-                  </Badge>
-                </div>
-              </div> */}
-              {/* <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-destructive rounded-full mt-2 flex-shrink-0" />
-                <div>
-                  <p className="font-medium">Sample BRD Document</p>
-                  <Badge variant="destructive" className="text-xs">
-                    Required
-                  </Badge>
-                </div>
-              </div> */}
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-destructive rounded-full mt-2 flex-shrink-0" />
                 <div>
                   <p className="font-medium">Product Specs and Supporting Documents</p>
-                  {/* <Badge variant="destructive" className="text-xs">
-                    Required
-                  </Badge> */}
+                  <Badge variant="destructive" className="text-xs">Required</Badge>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
     <ScrollArea className="h-full">
       <div className="p-6 space-y-6">
-        {appState.template.sections?.map((section) => (
-          <Card key={section.id} className="shadow-sm">
+        {localSections.map((section) => (
+          <Card key={section.section_id} className="shadow-sm">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{section.title}</CardTitle>
-                <Button size="sm" className="gap-2">
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </Button>
+              <div className="flex justify-between">
+                <div className="flex justify-between items-center gap-6">
+                  <CardTitle className="text-lg">{formatTitle(section.section_id)}</CardTitle>
+                  <Button
+                    size="sm"
+                    className="cursor-pointer"
+                    onClick={() => handleGenerate(section.section_id)}
+                  >
+                    Generate Section
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm max-w-none">
-                {section.content ? (
-                  <div dangerouslySetInnerHTML={{ __html: section.content }} />
-                ) : (
-                  <div className="text-center py-8">
-                    <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">No content yet. Click Edit to add content.</p>
-                  </div>
-                )}
-              </div>
+
+            <MDXEditor
+              className="dark-theme dark-editor mdx-editor"
+              markdown={section.content || ""}
+              ref={(ref) => {editorRefs.current[section.section_id] = ref;}}
+              onChange={(val) => handleContentChange(section.section_id, val)}
+              plugins={[
+                headingsPlugin(),
+                listsPlugin(),
+                linkPlugin(),
+                quotePlugin(),
+                thematicBreakPlugin(),
+                //markdownShortcutPlugin(),
+                tablePlugin(),
+                //frontmatterPlugin(),
+                //directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
+                diffSourcePlugin({ diffMarkdown: 'An older version', viewMode: 'rich-text' }),
+                toolbarPlugin({
+                  toolbarContents: () => (
+                    <>
+                      {' '}
+                      <DiffSourceToggleWrapper>
+                        <UndoRedo />
+                      </DiffSourceToggleWrapper>
+                      <BoldItalicUnderlineToggles />
+                      <InsertTable />
+                      <ListsToggle />
+                      <InsertFrontmatter />
+                    </>
+                  )
+                }),
+
+              ]}
+            />
             </CardContent>
           </Card>
         ))}
       </div>
     </ScrollArea>
-  )
+  );
 }

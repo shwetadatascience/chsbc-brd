@@ -211,7 +211,10 @@ const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Label className="text-base font-medium">Product Specs Documents</Label>
-                <Badge variant={fileUploaded ? "success" : "destructive"} className="text-xs">
+                <Badge
+                  variant={fileUploaded ? "default" : "destructive"}
+                  className={fileUploaded ? "bg-green-500 text-white" : ""}
+                >
                   {fileUploaded ? "Uploaded" : "Required"}
                 </Badge>
               </div>
@@ -224,7 +227,7 @@ const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement
                   className="flex-1"
                   accept=".md"
                 />
-                <Button onClick={() => supportingFileRef.current?.click()} size="sm" className="gap-2">
+                <Button onClick={() => supportingFileRef.current?.click()} size="sm" className="gap-2 cursor-pointer">
                   <Upload className="h-4 w-4" />
                   Upload .md File
                 </Button>

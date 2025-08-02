@@ -26,6 +26,18 @@ export const uploadProductSpecsFile = async (file: File, sessionId: string) => {
 
 //service to get inital Outline
 export const getInitialOutline = async (sessionId: string) => {
-  const response = await api.get('/create/template', { session_id: sessionId });
+  const response = await api.get(`/create/template?session_id=${sessionId}`);
   return response.data;
+};
+
+  //service to generate sections by sections
+  export const generateIndividualSection = async (sectionId: string, sessionId: string) => {
+  try {
+    const response = await api.post(`/generate/section/${sectionId}?session_id=${sessionId}`);
+
+    return response.data; // assuming it returns { content: '...' }
+  } catch (error) {
+    console.error('Error generating section:', error);
+    throw error;
+  }
 };
