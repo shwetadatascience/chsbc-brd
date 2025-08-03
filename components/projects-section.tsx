@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown, ChevronUp, Plus } from "lucide-react"
+import { ChevronDown, ChevronUp, Loader2, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -16,25 +16,30 @@ type ProjectsSectionProps = {
 };
 
 
-export function ProjectsSection({ SessionId,onSessionIdChange }: ProjectsSectionProps) {
+export function ProjectsSection({ SessionId, onSessionIdChange }: ProjectsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { appState, createNewProject } = useAppState()
+  const [projectCreated, setProjectCreated] = useState(false); // badge state
   const { toast } = useToast();
 
   const handleCreateSession = async () => {
 
     try {
+      setProjectCreated(true); // Set badge state to true
       const result = await createSession(); // This is the service function
-      console.log('Session created:', result);
+      if (result.session_id != '') {
+        setProjectCreated(false);
+      }
+
       onSessionIdChange(result.session_id)
-       toast({
+      toast({
         title: "Project Created",
-        description: `Project ID: ${result.session_id|| "unknown"}`,
+        description: `Project ID: ${result.session_id || "unknown"}`,
       });
-          } catch (error) {
-            console.error('Session creation failed:', error);
-          }
-        };
+    } catch (error) {
+      console.error('Session creation failed:', error);
+    }
+  };
 
   return (
     <Card className="rounded-none border-x-0 border-t-0">
@@ -64,8 +69,19 @@ export function ProjectsSection({ SessionId,onSessionIdChange }: ProjectsSection
                 )}
               </div>
               <Button onClick={handleCreateSession} size="sm" className="gap-2 cursor-pointer">
-                <Plus className="h-4 w-4" />
-                New Project
+                {projectCreated ? (
+                  <>
+                    <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    New Project
+                  </>
+
+                )}
+
               </Button>
             </div>
 

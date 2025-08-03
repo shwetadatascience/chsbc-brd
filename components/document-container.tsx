@@ -22,6 +22,7 @@ import {
   ListsToggle
 } from '@mdxeditor/editor';
 import '@mdxeditor/editor/style.css';
+import { se } from "date-fns/locale";
 
 
 
@@ -47,6 +48,8 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
 
   useEffect(() => {
     setLocalSections(sections);
+    console.log('Sections updated in main sections:', sections);
+    console.log('Sections updated in localSections:', localSections);
   }, [sections]);
 
 
@@ -71,7 +74,7 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
 
 
   const handleContentChange = (sectionId: string, content: string) => {
-    const updated = localSections.map((s) =>
+    const updated = sections.map((s) =>
       s.section_id === sectionId ? { ...s, content } : s
     );
     setLocalSections(updated);
@@ -84,14 +87,12 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
     setLoadingSections(prev => ({ ...prev, [sectionId]: true }));
 
     try {
-      const matchedSection = localSections.find((s) => s.section_id === sectionId);
+      const matchedSection = sections.find((s) => s.section_id === sectionId);
       const Sectioncontent = matchedSection?.content || "";
 
-      const response = await editManualSection(sectionId,Sectioncontent);
+      const response = await editManualSection(sectionId,Sectioncontent,SessionId);
 
       const { content, status, section_id } = response;
-
-      console.log('Edit Content', response);
 
       // Update content in editor
       const editorInstance = editorRefs.current[sectionId];
@@ -101,15 +102,14 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
 
       // Update content in local state and propagate to parent
 
-      const updatedSections = localSections.map((section) =>
+      const updatedSections = sections.map((section) =>
         section.section_id === sectionId ? { ...section, content, status } : section
       );
 
-      console.log('Updated Sections', updatedSections);
-
       setLocalSections(updatedSections);
+      console.log('Updated Sections local section', localSections);
       onSectionsChange(updatedSections);
-
+      console.log('Updated main Sections ', sections);
       toast({
         title: "Section Generated",
         description: `${formatTitle(response.section_id)} generated Successfully`,
@@ -140,8 +140,6 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
 
       const { content, status, section_id } = response;
 
-      console.log('Content', response);
-
       // Update content in editor
       const editorInstance = editorRefs.current[sectionId];
       if (editorInstance) {
@@ -150,11 +148,11 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
 
       // Update content in local state and propagate to parent
 
-      const updatedSections = localSections.map((section) =>
+      const updatedSections = sections.map((section) =>
         section.section_id === sectionId ? { ...section, content, status } : section
       );
 
-      console.log('Updated Sections', updatedSections);
+      //console.log('Updated Sections', updatedSections);
 
       setLocalSections(updatedSections);
       onSectionsChange(updatedSections);
@@ -181,7 +179,7 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
 
 
 
-  if (!localSections.length) {
+  if (!sections.length) {
     return (
       <div className="h-full flex items-center justify-center p-8 bg-muted/30">
         <Card className="max-w-md">
@@ -208,7 +206,7 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
   return (
     <ScrollArea className="h-full">
       <div className="p-6 space-y-6">
-        {localSections.map((section) => (
+        {sections.map((section) => (
           <Card key={section.section_id} className="shadow-sm bg-[#EAF5FD] border-none">
             <CardHeader>
               <div>
@@ -243,6 +241,7 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
             <CardContent>
 
               <MDXEditor
+                key={section.content + section.section_id} 
                 className="dark-theme dark-editor mdx-editor"
                 markdown={section.content || ""}
                 ref={(ref) => { editorRefs.current[section.section_id] = ref; }}

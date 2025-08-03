@@ -43,11 +43,24 @@ export const generateIndividualSection = async (sectionId: string, sessionId: st
 };
 
 //service to edit manual sections 
-export const editManualSection = async (sectionId: string,Sectioncontent: string) => {
+export const editManualSection = async (sectionId: string,Sectioncontent: string,session_id:string) => {
   try {
-    const response = await api.patch(`/edit/section/${sectionId}?session_id=2d476300-cb16-43e5-b911-28b8c1d8f608`, {
-      // sectionId: sectionId,
+    const response = await api.patch(`/edit/section/${sectionId}?session_id=${session_id}`, {
       content: Sectioncontent,
+    });
+
+    return response.data; // assuming it returns { content: '...' }
+  } catch (error) {
+    console.error('Error edit section:', error);
+    throw error;
+  }
+};
+
+//service to edit LLM Prompt sections 
+export const editLLMPromptSection = async (sectionId: string,instruction: string,session_id:string) => {
+  try {
+    const response = await api.post(`/edit/section/${sectionId}/llm?session_id=${session_id}`, {
+      instruction: instruction,
     });
 
     return response.data; // assuming it returns { content: '...' }

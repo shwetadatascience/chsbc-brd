@@ -23,8 +23,9 @@ import { downloadPdfDocument, downloadWordDocument } from "@/services/userServic
 interface Section {
   section_id: string;
   status: string;
-  content:string
+  content: string
 }
+
 
 export default function DocumentManagementApp() {
   const { appState, initializeApp } = useAppState()
@@ -36,20 +37,18 @@ export default function DocumentManagementApp() {
     setSessionId(newSessionId)
   }
 
+
   //section ID
-  const [sections, setSections] =  useState<Section>({
-        section_id: "",
-        status: "",
-        content:""
-  });
-  const handleSectionChange = (newSections: Section) => {
-    console.log('Updation',newSections);
+  const [sections, setSections] = useState<Section[]>([]);
+
+  const handleSectionChange = (newSections: Section[]) => {
+    //console.log('Updation',newSections);
     setSections(newSections)
-    console.log('Sections updated:',newSections);
+    //console.log('Sections updated:',newSections);
   }
 
   //function to download files
-    const handleDownload = async (type: "pdf" | "word") => {
+  const handleDownload = async (type: "pdf" | "word") => {
     try {
       const blob =
         type === "pdf"
@@ -85,8 +84,23 @@ export default function DocumentManagementApp() {
     }
   };
 
+  const [isDownloadReady, setIsDownloadReady] = useState(false);
+ 
+useEffect(() => {
+
+  const allReady = sections.length > 0 && sections.every(
+  (section) => section.status === "generated" || section.status === "edited"
+  );
+  console.log('All sections ready:', allReady);
+
+  setIsDownloadReady(allReady);
+
+}, [sections]);
+ 
+
   useEffect(() => {
     initializeApp()
+    
   }, [initializeApp])
 
   return (
@@ -106,7 +120,7 @@ export default function DocumentManagementApp() {
           <div className="ml-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button variant="outline" className="flex items-center gap-2" disabled={!isDownloadReady}>
                   <Download className="w-4 h-4" />
                   Download
                 </Button>
@@ -128,18 +142,18 @@ export default function DocumentManagementApp() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         <ResizablePanel
-          leftContent={<DocumentContainer 
+          leftContent={<DocumentContainer
             SessionId={SessionId}
             onSessionIdChange={handleSessionIdChange}
             sections={sections}
             onSectionsChange={handleSectionChange}
           />}
-          rightContent={<RightPanel 
+          rightContent={<RightPanel
             SessionId={SessionId}
             onSessionIdChange={handleSessionIdChange}
             sections={sections}
             onSectionsChange={handleSectionChange}
-            />}
+          />}
           leftWidth={leftPanelWidth}
           onWidthChange={setLeftPanelWidth}
         />
@@ -151,26 +165,30 @@ export default function DocumentManagementApp() {
 type RightPanelProps = {
   SessionId: string;
   onSessionIdChange: (newSessionId: string) => void;
-  sections: Section;
-  onSectionsChange: (newSections: Section) => void;
+  sections: Section[];
+  onSectionsChange: (newSections: Section[]) => void;
 };
 
-function RightPanel({ SessionId,onSessionIdChange,  sections, onSectionsChange}: RightPanelProps) {
+function RightPanel({ SessionId, onSessionIdChange, sections, onSectionsChange }: RightPanelProps) {
   return (
     <Card className="h-full rounded-none border-r-0 border-t-0 border-b-0 flex flex-col">
       <div className="flex-1 overflow-y-auto">
-        <ProjectsSection 
+        <ProjectsSection
           SessionId={SessionId}
           onSessionIdChange={onSessionIdChange}
         />
         <Separator />
-        <DocumentUploadSection 
-        SessionId={SessionId} 
-        sections={sections}
-        onSectionsChange={onSectionsChange}
+        <DocumentUploadSection
+          SessionId={SessionId}
+          sections={sections}
+          onSectionsChange={onSectionsChange}
         />
         <Separator />
-        <AIAssistantSection />
+        <AIAssistantSection
+          SessionId={SessionId}
+          onSessionIdChange={onSessionIdChange}
+          sections={sections}
+          onSectionsChange={onSectionsChange} />
       </div>
     </Card>
   )

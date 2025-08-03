@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef } from "react"
-import { ChevronDown, ChevronUp, Upload, FileText, Loader2  } from "lucide-react"
+import { ChevronDown, ChevronUp, Upload, FileText, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,7 +17,7 @@ import { uploadProductSpecsFile, getInitialOutline } from "@/services/userServic
 interface Section {
   section_id: string;
   status: string;
-  content:string
+  content: string
 }
 
 type DocumentUploadProps = {
@@ -27,11 +27,12 @@ type DocumentUploadProps = {
 
 };
 
-export function DocumentUploadSection({ SessionId,  sections, onSectionsChange }: DocumentUploadProps) {
+export function DocumentUploadSection({ SessionId, sections, onSectionsChange }: DocumentUploadProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const { appState, uploadTemplate, uploadReference, uploadSupporting } = useAppState()
   const [fileUploaded, setFileUploaded] = useState(false); // badge state
   const [isFetchingOutline, setIsFetchingOutline] = useState(false); // loading spinner
+  const [fileLoaded, setFileLoaded] = useState(false); // badge state
   const { toast } = useToast();
 
   const templateFileRef = useRef<HTMLInputElement>(null)
@@ -51,15 +52,15 @@ export function DocumentUploadSection({ SessionId,  sections, onSectionsChange }
       await uploadReference(file)
     }
   }
-const allowedExtensions = [".md", ".txt",".docx", ".xls", ".xlsx"];
-const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const allowedExtensions = [".md", ".txt", ".docx", ".xls", ".xlsx"];
+  const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
       toast({
         title: "Invalid File",
-        description: "Only .md, .txt, .docx, .xls, and .xlsx files are allowed.",
+        description: "Only .docx, .xls, .xlsx, .txt, and .md files are allowed.",
         variant: "destructive",
       });
       return;
@@ -68,11 +69,13 @@ const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement
     try {
       // 1. Create session
       const sessionId = SessionId;
-
+      setFileLoaded(true);
       // 2. Upload file
-      await uploadProductSpecsFile(file, sessionId);
+      const response = await uploadProductSpecsFile(file, sessionId);
       setFileUploaded(true);
-
+      if (response) {
+        setFileLoaded(false);
+      }
       // 3. Show success toast
       toast({
         title: "File Uploaded Successfully",
@@ -93,7 +96,7 @@ const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement
         try {
           const outline = await getInitialOutline(sessionId);
           onSectionsChange(outline);
-          console.log("Outline:", outline);
+          //console.log("Outline:", outline);
           // handle outline (store or render)
         } catch (err) {
           toast({
@@ -216,7 +219,7 @@ const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement
                   {fileUploaded ? "Uploaded" : "Required"}
                 </Badge>
               </div>
-             
+
               <div className="flex items-center gap-3">
                 <Input
                   ref={supportingFileRef}
@@ -227,8 +230,18 @@ const handleSupportingSpecsUpload = async (e: React.ChangeEvent<HTMLInputElement
                   accept=".docx,.txt,.xls,.xlsx,.md"
                 />
                 <Button onClick={() => supportingFileRef.current?.click()} size="sm" className="gap-2 cursor-pointer">
-                  <Upload className="h-4 w-4" />
-                  Upload .md File
+                  {fileLoaded ? (
+                    <>
+                      <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4" />
+                      Upload File
+                    </>
+
+                  )}
                 </Button>
               </div>
               <span className="text-sm text-muted-foreground">

@@ -114,7 +114,7 @@ export function useAppState() {
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
       // Mock response - in real app, this would update the section content
-      console.log("Chat message sent:", { message, sectionId })
+      // console.log("Chat message sent:", { message, sectionId })
     } catch (error) {
       console.error("Error sending chat message:", error)
     } finally {
