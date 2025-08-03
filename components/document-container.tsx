@@ -37,7 +37,7 @@ type DocumentContainerProps = {
   SessionId: string;
   onSessionIdChange: (newSessionId: string) => void;
   sections: Section[];
-  onSectionsChange: (sections: Section[]) => void;
+  onSectionsChange: (sections: Section[],source:string) => void;
 };
 
 export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSectionsChange }: DocumentContainerProps) {
@@ -76,7 +76,7 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
     const updated = sections.map((s) =>
       s.section_id === sectionId ? { ...s, content } : s
     );
-    onSectionsChange(updated);
+    onSectionsChange(updated,"Manual Section Edit Content Change");
   };
 
   const handleEdit = async (sectionId: string) => {
@@ -107,8 +107,8 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
       console.log('Updated Sections edit', updatedSections);
 
       // setLocalSections(updatedSections);
-      onSectionsChange(updatedSections);
-      console.log('Updated main Sections ', sections);
+      onSectionsChange(updatedSections,"Manual Section Edit");
+     // console.log('Updated main Sections ', sections);
       toast({
         title: "Section Generated",
         description: `${formatTitle(response.section_id)} generated Successfully`,
@@ -154,7 +154,7 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
       console.log('Updated Sections First time', updatedSections);
 
       // setLocalSections(updatedSections);
-      onSectionsChange(updatedSections);
+      onSectionsChange(updatedSections,"Manual Section Generation");
 
       toast({
         title: "Section Generated",

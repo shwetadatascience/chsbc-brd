@@ -23,7 +23,7 @@ interface Section {
 type DocumentUploadProps = {
   SessionId: string;
   sections: Section[];
-  onSectionsChange: (sections: Section[]) => void;
+  onSectionsChange: (sections: Section[],source:string) => void;
 
 };
 
@@ -95,7 +95,7 @@ export function DocumentUploadSection({ SessionId, sections, onSectionsChange }:
       setTimeout(async () => {
         try {
           const outline = await getInitialOutline(sessionId);
-          onSectionsChange(outline);
+          onSectionsChange(outline, "Outline Fetched");
           //console.log("Outline:", outline);
           // handle outline (store or render)
         } catch (err) {

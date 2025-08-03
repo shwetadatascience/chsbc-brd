@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ResizablePanel } from "@/components/resizable-panel"
 import { ProjectsSection } from "@/components/projects-section"
 import { DocumentUploadSection } from "@/components/document-upload-section"
@@ -40,12 +40,28 @@ export default function DocumentManagementApp() {
 
   //section ID
   const [sections, setSections] = useState<Section[]>([]);
+  const sectionChangeCountRef = useRef(0);
+const prevSectionsRef = useRef<Section[]>([]);
 
-  const handleSectionChange = (newSections: Section[]) => {
-    //console.log('Updation',newSections);
-    setSections(newSections)
-    //console.log('Sections updated:',newSections);
+
+  const handleSectionChange = (newSections: Section[], source: string) => {
+     // Compare with previous state (optional)
+  const prev = prevSectionsRef.current;
+  const hasChanged = JSON.stringify(prev) !== JSON.stringify(newSections);
+
+  if (hasChanged) {
+    sectionChangeCountRef.current += 1;
+    prevSectionsRef.current = newSections;
+
+    console.log(`🟡 Sections changed (#${sectionChangeCountRef.current}) from "${source}"`);
+    console.log("🔹 Previous:", prev);
+    console.log("🔸 New:", newSections);
+  } else {
+    console.log(`⚪ Sections update from "${source}" did not change the value`);
   }
+
+  setSections(newSections);
+};
 
   //function to download files
   const handleDownload = async (type: "pdf" | "word") => {
@@ -166,7 +182,7 @@ type RightPanelProps = {
   SessionId: string;
   onSessionIdChange: (newSessionId: string) => void;
   sections: Section[];
-  onSectionsChange: (newSections: Section[]) => void;
+  onSectionsChange: (newSections: Section[], source: string) => void
 };
 
 function RightPanel({ SessionId, onSessionIdChange, sections, onSectionsChange }: RightPanelProps) {

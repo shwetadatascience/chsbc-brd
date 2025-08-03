@@ -26,7 +26,7 @@ type AIAssistantProps = {
   SessionId: string;
   onSessionIdChange: (newSessionId: string) => void;
   sections: Section[];
-  onSectionsChange: (newSections: Section[]) => void;
+  onSectionsChange: (newSections: Section[], source?: string) => void
 };
 
 export function AIAssistantSection({ SessionId, onSessionIdChange, sections, onSectionsChange }: AIAssistantProps) {
@@ -146,7 +146,7 @@ export function AIAssistantSection({ SessionId, onSessionIdChange, sections, onS
       );
 
       console.log('Updated Sections through LLM', updatedSections);
-      onSectionsChange(updatedSections);
+      onSectionsChange(updatedSections,"LLM Assistant");
       handleReceiveMessage(`Section ${formatTitle(section_id)} edited and saved successfully.`);
       // toast({
       //   title: "Section Edited Successfully through Assistant",
