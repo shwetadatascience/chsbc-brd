@@ -86,16 +86,16 @@ export default function DocumentManagementApp() {
 
   const [isDownloadReady, setIsDownloadReady] = useState(false);
  
-useEffect(() => {
+// useEffect(() => {
 
-  const allReady = sections.length > 0 && sections.every(
-  (section) => section.status === "generated" || section.status === "edited"
-  );
-  console.log('All sections ready:', allReady);
+//   const allReady = sections.length > 0 && sections.every(
+//   (section) => section.status === "generated" || section.status === "edited"
+//   );
+//   console.log('All sections ready:', allReady);
 
-  setIsDownloadReady(allReady);
+//   setIsDownloadReady(allReady);
 
-}, [sections]);
+// }, [sections]);
  
 
   useEffect(() => {
@@ -120,7 +120,7 @@ useEffect(() => {
           <div className="ml-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2" disabled={!isDownloadReady}>
+                <Button variant="outline" className="flex items-center gap-2">
                   <Download className="w-4 h-4" />
                   Download
                 </Button>

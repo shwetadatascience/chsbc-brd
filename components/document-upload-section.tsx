@@ -22,8 +22,8 @@ interface Section {
 
 type DocumentUploadProps = {
   SessionId: string;
-  sections: Section;
-  onSectionsChange: (sections: Section) => void;
+  sections: Section[];
+  onSectionsChange: (sections: Section[]) => void;
 
 };
 
@@ -245,7 +245,7 @@ export function DocumentUploadSection({ SessionId, sections, onSectionsChange }:
                 </Button>
               </div>
               <span className="text-sm text-muted-foreground">
-                Expected file types: <code>.md</code>, <code>.txt</code>, <code>.docx</code>, <code>.xls</code>, <code>.xlsx</code>
+                Expected file types: <code>.docx</code>, <code>.xls</code>, <code>.xlsx</code>, <code>.txt</code>, <code>.md</code>
               </span>
             </div>
           </CardContent>

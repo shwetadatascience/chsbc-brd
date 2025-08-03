@@ -46,11 +46,10 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
   const { toast } = useToast();
   const [loadingSections, setLoadingSections] = useState<{ [key: string]: boolean }>({});
 
-  useEffect(() => {
-    setLocalSections(sections);
-    console.log('Sections updated in main sections:', sections);
-    console.log('Sections updated in localSections:', localSections);
-  }, [sections]);
+  // useEffect(() => {
+  //   setLocalSections(sections);
+  //   console.log('Sections updated in main sections:', sections);
+  // }, [sections]);
 
 
   const formatTitle = (title: string) => {
@@ -77,7 +76,6 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
     const updated = sections.map((s) =>
       s.section_id === sectionId ? { ...s, content } : s
     );
-    setLocalSections(updated);
     onSectionsChange(updated);
   };
 
@@ -106,8 +104,9 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
         section.section_id === sectionId ? { ...section, content, status } : section
       );
 
-      setLocalSections(updatedSections);
-      console.log('Updated Sections local section', localSections);
+      console.log('Updated Sections edit', updatedSections);
+
+      // setLocalSections(updatedSections);
       onSectionsChange(updatedSections);
       console.log('Updated main Sections ', sections);
       toast({
@@ -152,9 +151,9 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
         section.section_id === sectionId ? { ...section, content, status } : section
       );
 
-      //console.log('Updated Sections', updatedSections);
+      console.log('Updated Sections First time', updatedSections);
 
-      setLocalSections(updatedSections);
+      // setLocalSections(updatedSections);
       onSectionsChange(updatedSections);
 
       toast({
@@ -227,6 +226,7 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
                         Generating...
                       </>
                     ) : (
+                      
                       (section.status === 'generated' || section.status === 'edited') && section.content != "" ? (
                         "Save Section"
                       ) : (
