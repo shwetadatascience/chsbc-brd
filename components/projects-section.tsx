@@ -35,6 +35,7 @@ export function ProjectsSection({ SessionId, onSessionIdChange }: ProjectsSectio
       toast({
         title: "Project Created",
         description: `Project ID: ${result.session_id || "unknown"}`,
+        duration: 4000,
       });
     } catch (error) {
       console.error('Session creation failed:', error);

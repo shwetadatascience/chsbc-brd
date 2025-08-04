@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { generateIndividualSection,editManualSection } from "@/services/userService";
+import { generateIndividualSection, editManualSection } from "@/services/userService";
 import { useToast } from "@/hooks/use-toast";
 import { MDXEditorMethods } from '@mdxeditor/editor';
 import { Loader2 } from "lucide-react";
@@ -24,8 +24,6 @@ import {
 import '@mdxeditor/editor/style.css';
 import { se } from "date-fns/locale";
 
-
-
 interface Section {
   section_id: string;
   title?: string;
@@ -37,7 +35,7 @@ type DocumentContainerProps = {
   SessionId: string;
   onSessionIdChange: (newSessionId: string) => void;
   sections: Section[];
-  onSectionsChange: (sections: Section[],source:string) => void;
+  onSectionsChange: (sections: Section[], source: string) => void;
 };
 
 export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSectionsChange }: DocumentContainerProps) {
@@ -46,10 +44,26 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
   const { toast } = useToast();
   const [loadingSections, setLoadingSections] = useState<{ [key: string]: boolean }>({});
 
+  //button states to manage generated or edited
+  const [buttonStates, setButtonStates] = useState<{ [key: string]: boolean }>({});
   // useEffect(() => {
   //   setLocalSections(sections);
   //   console.log('Sections updated in main sections:', sections);
   // }, [sections]);
+
+  //computing button states based on sections
+  useEffect(() => {
+    const updatedStates: { [key: string]: boolean } = {};
+
+    sections.forEach((section) => {
+      const isSave =
+        (section.status === "generated" || section.status === "edited") &&
+        section.content.trim() !== "";
+      updatedStates[section.section_id] = isSave;
+    });
+
+    setButtonStates(updatedStates);
+  }, [sections]);
 
 
   const formatTitle = (title: string) => {
@@ -72,12 +86,22 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
   };
 
 
-  const handleContentChange = (sectionId: string, content: string) => {
-    const updated = sections.map((s) =>
-      s.section_id === sectionId ? { ...s, content } : s
-    );
-    onSectionsChange(updated,"Manual Section Edit Content Change");
-  };
+const handleContentChange = (sectionId: string, content: string) => {
+  const updated = sections.map((s) =>
+    s.section_id === sectionId ? { ...s, content } : s
+  );
+  onSectionsChange(updated, "Manual Section Edit Content Change");
+
+  const matchedSection = sections.find(s => s.section_id === sectionId);
+  if (matchedSection) {
+    const isSave =
+      (matchedSection.status === 'generated' || matchedSection.status === 'edited') &&
+      content.trim() !== "";
+    setButtonStates(prev => ({ ...prev, [sectionId]: isSave }));
+  }
+};
+
+
 
   const handleEdit = async (sectionId: string) => {
     if (!SessionId) return;
@@ -88,7 +112,7 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
       const matchedSection = sections.find((s) => s.section_id === sectionId);
       const Sectioncontent = matchedSection?.content || "";
 
-      const response = await editManualSection(sectionId,Sectioncontent,SessionId);
+      const response = await editManualSection(sectionId, Sectioncontent, SessionId);
 
       const { content, status, section_id } = response;
 
@@ -107,11 +131,12 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
       console.log('Updated Sections edit', updatedSections);
 
       // setLocalSections(updatedSections);
-      onSectionsChange(updatedSections,"Manual Section Edit");
-     // console.log('Updated main Sections ', sections);
+      onSectionsChange(updatedSections, "Manual Section Edit");
+      // console.log('Updated main Sections ', sections);
       toast({
         title: "Section Generated",
         description: `${formatTitle(response.section_id)} generated Successfully`,
+        duration: 4000,
       });
 
       // Optional: toast.success('Section generated successfully');
@@ -119,9 +144,9 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
       console.error('Error generating section:', error);
       // Optional: toast.error('Failed to generate section');
       toast({
-        variant: "destructive",
         title: "Generation Failed",
         description: `Could not generate section.`,
+        duration: 4000,
       });
     }
     finally {
@@ -154,11 +179,12 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
       console.log('Updated Sections First time', updatedSections);
 
       // setLocalSections(updatedSections);
-      onSectionsChange(updatedSections,"Manual Section Generation");
+      onSectionsChange(updatedSections, "Manual Section Generation");
 
       toast({
         title: "Section Generated",
         description: `${formatTitle(response.section_id)} generated Successfully`,
+        duration: 4000,
       });
 
       // Optional: toast.success('Section generated successfully');
@@ -166,9 +192,9 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
       console.error('Error generating section:', error);
       // Optional: toast.error('Failed to generate section');
       toast({
-        variant: "destructive",
         title: "Generation Failed",
         description: `Could not generate section.`,
+        duration: 4000,
       });
     }
     finally {
@@ -214,11 +240,11 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
                   <Button
                     size="sm"
                     className="cursor-pointer"
-                      onClick={() =>
-                        section.status === "generated"
-                          ? handleEdit(section.section_id)
-                          : handleGenerate(section.section_id)
-                      }
+                    onClick={() =>
+                      buttonStates[section.section_id]
+                        ? handleEdit(section.section_id)
+                        : handleGenerate(section.section_id)
+                    }
                   >
                     {loadingSections[section.section_id] ? (
                       <>
@@ -226,12 +252,8 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
                         Generating...
                       </>
                     ) : (
-                      
-                      (section.status === 'generated' || section.status === 'edited') && section.content != "" ? (
-                        "Save Section"
-                      ) : (
-                        "Generate Section"
-                      )
+
+                      buttonStates[section.section_id] ? "Save Section" : "Generate Section"
 
                     )}
                   </Button>
@@ -241,7 +263,7 @@ export function DocumentContainer({ SessionId, onSessionIdChange, sections, onSe
             <CardContent>
 
               <MDXEditor
-                key={section.content + section.section_id} 
+                key={section.content + section.section_id}
                 className="dark-theme dark-editor mdx-editor"
                 markdown={section.content || ""}
                 ref={(ref) => { editorRefs.current[section.section_id] = ref; }}

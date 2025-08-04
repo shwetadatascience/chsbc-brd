@@ -61,7 +61,7 @@ export function DocumentUploadSection({ SessionId, sections, onSectionsChange }:
       toast({
         title: "Invalid File",
         description: "Only .docx, .xls, .xlsx, .txt, and .md files are allowed.",
-        variant: "destructive",
+        duration: 4000,
       });
       return;
     }
@@ -80,7 +80,7 @@ export function DocumentUploadSection({ SessionId, sections, onSectionsChange }:
       toast({
         title: "File Uploaded Successfully",
         description: `Session ID: ${sessionId}`,
-        variant: "success",
+        duration: 4000,
       });
 
       // 4. Show fetching toast with spinner
@@ -88,7 +88,7 @@ export function DocumentUploadSection({ SessionId, sections, onSectionsChange }:
       toast({
         title: "Fetching Outline Now...",
         description: "Hang tight while we process your document.",
-        icon: <Loader2 className="animate-spin h-4 w-4 text-muted-foreground" />,
+        duration: 5000,
       });
 
       // 5. Slight delay then fetch outline
@@ -102,7 +102,7 @@ export function DocumentUploadSection({ SessionId, sections, onSectionsChange }:
           toast({
             title: "Outline Fetch Failed",
             description: "Unable to retrieve outline.",
-            variant: "destructive",
+            duration: 4000,
           });
         } finally {
           setIsFetchingOutline(false);
@@ -112,7 +112,7 @@ export function DocumentUploadSection({ SessionId, sections, onSectionsChange }:
       toast({
         title: "Upload Failed",
         description: "Something went wrong during upload.",
-        variant: "destructive",
+        duration: 4000,
       });
     }
   };

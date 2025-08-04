@@ -35,6 +35,8 @@ export function AIAssistantSection({ SessionId, onSessionIdChange, sections, onS
   const { appState, sendChatMessage } = useAppState()
   const { toast } = useToast();
 
+  const [isLoading, setIsLoading] = useState(false);
+
   //Chat messages state
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<{ text: string; sender: "user" | "system" }[]>([
@@ -66,6 +68,7 @@ export function AIAssistantSection({ SessionId, onSessionIdChange, sections, onS
   // Handles the chat box message,Example received message handler (simulating a response)
   const handleReceiveMessage = (response: string) => {
     const newMessage: { text: string; sender: "user" | "system" } = { text: response, sender: "system" }; // Explicit type
+
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
@@ -115,6 +118,7 @@ export function AIAssistantSection({ SessionId, onSessionIdChange, sections, onS
       toast({
         title: "Warning",
         description: `Session ID is missing. Please try again later.`,
+        duration: 4000,
       });
       return;
     }
@@ -123,6 +127,7 @@ export function AIAssistantSection({ SessionId, onSessionIdChange, sections, onS
       toast({
         title: "Warning",
         description: `Please select a section to edit.`,
+        duration: 4000,
       });
       return;
     }
@@ -131,12 +136,16 @@ export function AIAssistantSection({ SessionId, onSessionIdChange, sections, onS
       toast({
         title: "Warning",
         description: `Message cannot be empty..`,
+        duration: 4000,
       });
       return;
     }
 
     try {
       handleSend();
+
+      setIsLoading(true);
+
       // Make your API call here
       const response = await editLLMPromptSection(selectedSection, message, SessionId);
       const { content, status, section_id } = response;
@@ -146,7 +155,7 @@ export function AIAssistantSection({ SessionId, onSessionIdChange, sections, onS
       );
 
       console.log('Updated Sections through LLM', updatedSections);
-      onSectionsChange(updatedSections,"LLM Assistant");
+      onSectionsChange(updatedSections, "LLM Assistant");
       handleReceiveMessage(`Section ${formatTitle(section_id)} edited and saved successfully.`);
       // toast({
       //   title: "Section Edited Successfully through Assistant",
@@ -159,7 +168,10 @@ export function AIAssistantSection({ SessionId, onSessionIdChange, sections, onS
         variant: "destructive",
         title: "LLM Generation Failed",
         description: `Could not generate section.`,
+        duration: 4000,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -192,21 +204,40 @@ export function AIAssistantSection({ SessionId, onSessionIdChange, sections, onS
                   {/* Chat messages would be rendered here */}
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center space-y-2">
-                      {/* <Bot className="h-8 w-8 text-muted-foreground mx-auto" />
-                      <p className="text-sm text-muted-foreground">Start a conversation with the AI assistant</p> */}
                       {messages.map((msg, index) => (
                         <div key={index} className={`flex items-center ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}>
-                          {msg.sender !== "user" && <div className="w-6 h-6 mr-2 rounded-full" style={{ background: '#F80061' }}></div>}
-                          <div className={`p-3 m-2 rounded-lg max-w-[75%] ${msg.sender === 'user' ? 'bg-[#BFE4FF] text-black ml-auto' : 'bg-[#D5EBFB] text-black text-left'}`}>
+                          {msg.sender !== "user" && (
+                            <div className="w-6 h-6 mr-2 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: '#F80061' }}>
+                              A
+                            </div>
+                          )}
+                          <div className={`text-sm p-3 m-2 rounded-lg max-w-[75%] ${msg.sender === 'user' ? 'bg-[#BFE4FF] text-black text-right' : 'bg-[#D5EBFB] text-black text-left'}`}>
                             {msg.text}
                           </div>
-                          {msg.sender === "user" && <div className="w-6 h-6 ml-2 bg-[#00ADEF] rounded-full"></div>}
+                          {msg.sender === "user" && (
+                            <div className="w-6 h-6 ml-2 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: '#00ADEF' }}>
+                              U
+                            </div>
+                          )}
                         </div>
                       ))}
-                      <div ref={bottomRef} />
 
+                      {/* Loader Message */}
+                      {isLoading && (
+                        <div className="flex items-center justify-start mb-2">
+                          <div className="w-6 h-6 mr-2 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: '#F80061' }}>
+                            A
+                          </div>
+                          <div className="p-3 m-2 rounded-lg max-w-[75%] bg-[#D5EBFB] text-black text-left italic">
+                            Assistant is thinking...
+                          </div>
+                        </div>
+                      )}
+
+                      <div ref={bottomRef} />
                     </div>
                   </div>
+
                 </div>
               </ScrollArea>
             </Card>
@@ -236,20 +267,20 @@ export function AIAssistantSection({ SessionId, onSessionIdChange, sections, onS
 
             {/* Message Input */}
             <div className="space-y-2">
-              <Label htmlFor="message-input">Message</Label>
+              <Label htmlFor="message-input" className="my-2">Message</Label>
               <div className="relative">
                 <Textarea
                   id="message-input"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Type your message... Use @document to mention documents"
+                  placeholder="Type your message..."
                   className="flex-1 min-h-[80px] resize-none pr-10" // add right padding for icon space
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!message.trim() || !selectedSection}
-                  className="absolute bottom-2 right-2 p-2 text-primary disabled:opacity-50"
+                  className="cursor-pointer absolute bottom-2 right-2 p-2 text-primary disabled:opacity-50"
                   type="button"
                 >
                   <Send className="w-4 h-4" />

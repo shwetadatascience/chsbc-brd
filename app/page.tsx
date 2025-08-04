@@ -41,27 +41,43 @@ export default function DocumentManagementApp() {
   //section ID
   const [sections, setSections] = useState<Section[]>([]);
   const sectionChangeCountRef = useRef(0);
-const prevSectionsRef = useRef<Section[]>([]);
+  const prevSectionsRef = useRef<Section[]>([]);
 
 
   const handleSectionChange = (newSections: Section[], source: string) => {
-     // Compare with previous state (optional)
-  const prev = prevSectionsRef.current;
-  const hasChanged = JSON.stringify(prev) !== JSON.stringify(newSections);
+    // Compare with previous state (optional)
+    const prev = prevSectionsRef.current;
+    const hasChanged = JSON.stringify(prev) !== JSON.stringify(newSections);
 
-  if (hasChanged) {
-    sectionChangeCountRef.current += 1;
-    prevSectionsRef.current = newSections;
+    if (hasChanged) {
+      sectionChangeCountRef.current += 1;
+      prevSectionsRef.current = newSections;
 
-    console.log(`🟡 Sections changed (#${sectionChangeCountRef.current}) from "${source}"`);
-    console.log("🔹 Previous:", prev);
-    console.log("🔸 New:", newSections);
-  } else {
-    console.log(`⚪ Sections update from "${source}" did not change the value`);
-  }
+      console.log(`🟡 Sections changed (#${sectionChangeCountRef.current}) from "${source}"`);
+      console.log("🔹 Previous:", prev);
+      console.log("🔸 New:", newSections);
+    } else {
+      console.log(`⚪ Sections update from "${source}" did not change the value`);
+    }
 
-  setSections(newSections);
-};
+    setSections((prevSections) =>
+      newSections.map((newSec) => {
+        const prevSec = prevSections.find(sec => sec.section_id === newSec.section_id);
+
+        const shouldPreserveGenerated =
+          newSec.status === 'pending' &&
+          prevSec?.status === 'generated' &&
+          newSec.content === prevSec?.content;
+
+        return {
+          ...prevSec,
+          ...newSec,
+          status: shouldPreserveGenerated ? 'generated' : newSec.status,
+        };
+      })
+    );
+
+  };
 
   //function to download files
   const handleDownload = async (type: "pdf" | "word") => {
@@ -90,33 +106,35 @@ const prevSectionsRef = useRef<Section[]>([]);
       toast({
         title: `Download Started`,
         description: `Your ${type.toUpperCase()} document is downloading.`,
+        duration: 4000,
       });
     } catch (err) {
       toast({
         title: "Download Failed",
         description: `Could not download ${type.toUpperCase()} document.`,
-        variant: "destructive",
+        duration: 4000,
       });
     }
   };
 
   const [isDownloadReady, setIsDownloadReady] = useState(false);
- 
-// useEffect(() => {
 
-//   const allReady = sections.length > 0 && sections.every(
-//   (section) => section.status === "generated" || section.status === "edited"
-//   );
-//   console.log('All sections ready:', allReady);
+  useEffect(() => {
+    const allReady =
+      sections.length > 0 &&
+      sections.every((section) =>
+        (section.status === "generated" || section.status === "edited") &&
+        section.content.trim() !== ""
+      );
 
-//   setIsDownloadReady(allReady);
 
-// }, [sections]);
- 
+    setIsDownloadReady(allReady);
+  }, [sections]);
+
 
   useEffect(() => {
     initializeApp()
-    
+
   }, [initializeApp])
 
   return (
@@ -136,7 +154,7 @@ const prevSectionsRef = useRef<Section[]>([]);
           <div className="ml-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button variant="outline" className="flex items-center gap-2" disabled={!isDownloadReady}>
                   <Download className="w-4 h-4" />
                   Download
                 </Button>
